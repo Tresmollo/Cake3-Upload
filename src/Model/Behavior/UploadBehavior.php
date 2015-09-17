@@ -82,6 +82,10 @@ class UploadBehavior extends Behavior
                 throw new \LogicException(__('The path for the {0} field is required.', $field));
             }
 
+            if (strpos($fieldOption['path'], ':field') && !isset($fieldOption['field'])) {
+                throw new \LogicException(__('The field option for the {0} field is required if you use the :field identifier in your path.', $field));
+            // }
+
             if (isset($fieldOption['prefix']) && (is_bool($fieldOption['prefix']) || is_string($fieldOption['prefix']))) {
                 $this->_prefix = $fieldOption['prefix'];
             }
@@ -238,21 +242,25 @@ class UploadBehavior extends Behavior
      * Get the path formatted without its identifiers to upload the file.
      *
      * Identifiers :
-     *      :id  : Id of the Entity.
-     *      :md5 : A random and unique identifier with 32 characters.
-     *      :y   : Based on the current year.
-     *      :m   : Based on the current month.
+     *      :id    : Id of the Entity.
+     *      :md5   : A random and unique identifier with 32 characters.
+     *      :y     : Based on the current year.
+     *      :m     : Based on the current month.
+     *      :field : A choosen field of the Entity.
      *
      * i.e : upload/:id/:md5 -> upload/2/5e3e0d0f163196cb9526d97be1b2ce26.jpg
      *
-     * @param \Cake\ORM\Entity $entity    The entity that is going to be saved.
-     * @param bool|string      $path      The path to upload the file with its identifiers.
-     * @param bool|string      $extension The extension of the file.
+     * @param \Cake\ORM\Entity  $entity      The entity that is going to be saved.
+     * @param bool|array        $fieldOption  The field array containing the options.
+     * @param bool|string       $extension   The extension of the file.
      *
      * @return bool|string
      */
-    protected function _getUploadPath(Entity $entity, $path = false, $extension = false)
+    protected function _getUploadPath(Entity $entity, $fieldOption = false, $extension = false)
     {
+        $path = (array_key_exists('path', $fieldOption)) ? $fieldOption['path'] : false;
+        $field = (array_key_exists('field', $fieldOption)) ? $fieldOption['field'] : false;
+
         if ($extension === false || $path === false) {
             return false;
         }
@@ -263,7 +271,8 @@ class UploadBehavior extends Behavior
             ':id' => $entity->id,
             ':md5' => md5(rand() . uniqid() . time()),
             ':y' => date('Y'),
-            ':m' => date('m')
+            ':m' => date('m'),
+            ':field' => $entity->{$field}
         ];
 
         return strtr($path, $identifiers) . '.' . strtolower($extension);
