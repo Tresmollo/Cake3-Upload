@@ -84,7 +84,7 @@ class UploadBehavior extends Behavior
 
             if (strpos($fieldOption['path'], ':field') && !isset($fieldOption['field'])) {
                 throw new \LogicException(__('The field option for the {0} field is required if you use the :field identifier in your path.', $field));
-            // }
+            }
 
             if (isset($fieldOption['prefix']) && (is_bool($fieldOption['prefix']) || is_string($fieldOption['prefix']))) {
                 $this->_prefix = $fieldOption['prefix'];
